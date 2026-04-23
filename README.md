@@ -68,6 +68,7 @@ Update `server/.env` as needed:
 - `JWT_SECRET=<any_long_secure_string>`
 
 Notes:
+
 - On many local setups, Postgres role `postgres` does not exist; using your OS username in `DATABASE_URL` is normal.
 - Do not commit `server/.env`.
 
