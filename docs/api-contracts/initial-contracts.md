@@ -1,4 +1,4 @@
-# Initial API Contracts (Sprint 1-3)
+# Initial API Contracts (Sprint 1-5)
 
 Shared contract definitions live in `shared/types/contracts.ts`.
 
@@ -49,3 +49,19 @@ Shared contract definitions live in `shared/types/contracts.ts`.
     - `cleanedResumeText`
     - `jobDescriptionText`
     - optional `targetRoleName`
+    - optional `resumeFileName`
+  - requires bearer auth token
+
+## Auth Endpoints
+
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+
+Response:
+- `token`
+- `user`
+
+## History Endpoints
+
+- `GET /api/history`
+- `GET /api/history/:scanId`

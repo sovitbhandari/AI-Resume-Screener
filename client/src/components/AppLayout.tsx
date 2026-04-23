@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom'
+import { clearAuthSession, getAuthUser } from '../services/authStorage'
 
 const navLinks = [
   { to: '/', label: 'Home' },
@@ -9,10 +10,15 @@ const navLinks = [
 ]
 
 export function AppLayout() {
+  const user = getAuthUser()
+
   return (
     <div className="app-shell">
       <header className="app-header">
-        <h1>AI Resume Screener</h1>
+        <div>
+          <h1>AI Resume Screener</h1>
+          {user ? <p className="header-user">Signed in as {user.email}</p> : <p className="header-user">Not logged in</p>}
+        </div>
         <nav aria-label="Primary">
           <ul className="nav-list">
             {navLinks.map((link) => (
@@ -25,6 +31,20 @@ export function AppLayout() {
                 </NavLink>
               </li>
             ))}
+            {user ? (
+              <li>
+                <button
+                  type="button"
+                  className="ghost-button"
+                  onClick={() => {
+                    clearAuthSession()
+                    window.location.href = '/login'
+                  }}
+                >
+                  Logout
+                </button>
+              </li>
+            ) : null}
           </ul>
         </nav>
       </header>

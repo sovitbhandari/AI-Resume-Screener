@@ -1,3 +1,5 @@
+import { getAuthToken } from './authStorage'
+
 export type ParsedResumeResponse = {
   data: {
     fileName: string
@@ -12,6 +14,7 @@ export type ResumeAnalysisRequest = {
   cleanedResumeText: string
   jobDescriptionText: string
   targetRoleName?: string
+  resumeFileName?: string
 }
 
 export type SectionScore = {
@@ -45,6 +48,18 @@ export type ApiErrorResponse = {
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000/api'
 
+const withAuthHeaders = (headers?: HeadersInit) => {
+  const token = getAuthToken()
+  if (!token) {
+    return headers
+  }
+
+  return {
+    ...headers,
+    Authorization: `Bearer ${token}`,
+  }
+}
+
 export const parseResumePdf = async (file: File): Promise<ParsedResumeResponse> => {
   const formData = new FormData()
   formData.append('resume', file)
@@ -67,9 +82,9 @@ export const parseResumePdf = async (file: File): Promise<ParsedResumeResponse> 
 export const analyzeResume = async (payload: ResumeAnalysisRequest): Promise<AnalyzeResumeResponse> => {
   const response = await fetch(`${API_BASE_URL}/scans/analyze`, {
     method: 'POST',
-    headers: {
+    headers: withAuthHeaders({
       'Content-Type': 'application/json',
-    },
+    }),
     body: JSON.stringify(payload),
   })
 
@@ -80,4 +95,57 @@ export const analyzeResume = async (payload: ResumeAnalysisRequest): Promise<Ana
   }
 
   return json as AnalyzeResumeResponse
+}
+
+export type ScanHistoryItem = {
+  id: string
+  resume_file_name: string
+  overall_score: number | null
+  keyword_match_score: number | null
+  created_at: string
+}
+
+export type HistoryListResponse = {
+  data: ScanHistoryItem[]
+}
+
+export type HistoryDetailResponse = {
+  data: {
+    id: string
+    resume_file_name: string
+    resume_text: string
+    job_description: string
+    result_json: ResumeAnalysisResult
+    overall_score: number | null
+    keyword_match_score: number | null
+    created_at: string
+  }
+}
+
+export const fetchHistory = async (): Promise<HistoryListResponse> => {
+  const response = await fetch(`${API_BASE_URL}/history`, {
+    headers: withAuthHeaders(),
+  })
+
+  const json = (await response.json()) as HistoryListResponse | ApiErrorResponse
+  if (!response.ok) {
+    const message = 'error' in json ? json.error.message : 'Unable to load history.'
+    throw new Error(message)
+  }
+
+  return json as HistoryListResponse
+}
+
+export const fetchHistoryScan = async (scanId: string): Promise<HistoryDetailResponse> => {
+  const response = await fetch(`${API_BASE_URL}/history/${scanId}`, {
+    headers: withAuthHeaders(),
+  })
+
+  const json = (await response.json()) as HistoryDetailResponse | ApiErrorResponse
+  if (!response.ok) {
+    const message = 'error' in json ? json.error.message : 'Unable to load scan.'
+    throw new Error(message)
+  }
+
+  return json as HistoryDetailResponse
 }

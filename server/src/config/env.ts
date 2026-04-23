@@ -37,4 +37,6 @@ export const env = {
   llmApiKey: process.env.LLM_API_KEY ?? '',
   llmTimeoutMs: parsePositiveInt(process.env.LLM_TIMEOUT_MS, 15000, 'LLM_TIMEOUT_MS'),
   llmMaxRetries: parsePositiveInt(process.env.LLM_MAX_RETRIES, 2, 'LLM_MAX_RETRIES'),
+  jwtSecret: process.env.JWT_SECRET ?? 'change_me_in_production',
+  freeTierMonthlyScanLimit: parsePositiveInt(process.env.FREE_TIER_MONTHLY_SCAN_LIMIT, 5, 'FREE_TIER_MONTHLY_SCAN_LIMIT'),
 }

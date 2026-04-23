@@ -1,13 +1,27 @@
 import type { Request, Response } from 'express'
 import multer from 'multer'
+import { env } from '../config/env.js'
 import { parseResumePdf } from '../services/pdf-parser.service.js'
 import { analyzeResume } from '../services/resume-analysis.service.js'
+import { getUsageForCurrentMonth, saveScanWithUsageUpdate } from '../services/scan-history.service.js'
 
 export const analyzeResumeController = async (req: Request, res: Response) => {
-  const { cleanedResumeText, jobDescriptionText, targetRoleName } = req.body as {
+  const authUser = req.authUser
+  if (!authUser) {
+    res.status(401).json({
+      error: {
+        code: 'UNAUTHORIZED',
+        message: 'Authentication required.',
+      },
+    })
+    return
+  }
+
+  const { cleanedResumeText, jobDescriptionText, targetRoleName, resumeFileName } = req.body as {
     cleanedResumeText?: string
     jobDescriptionText?: string
     targetRoleName?: string
+    resumeFileName?: string
   }
 
   if (!cleanedResumeText?.trim() || !jobDescriptionText?.trim()) {
@@ -21,13 +35,41 @@ export const analyzeResumeController = async (req: Request, res: Response) => {
   }
 
   try {
+    const scansUsed = await getUsageForCurrentMonth(authUser.userId)
+    if (scansUsed >= env.freeTierMonthlyScanLimit) {
+      res.status(403).json({
+        error: {
+          code: 'QUOTA_EXCEEDED',
+          message: `Monthly free-tier scan limit (${env.freeTierMonthlyScanLimit}) reached.`,
+        },
+      })
+      return
+    }
+
     const analysis = await analyzeResume({
       cleanedResumeText: cleanedResumeText.trim(),
       jobDescriptionText: jobDescriptionText.trim(),
       targetRoleName: targetRoleName?.trim() || undefined,
     })
 
-    res.status(200).json({ data: analysis })
+    const scanId = await saveScanWithUsageUpdate({
+      userId: authUser.userId,
+      resumeFileName: resumeFileName?.trim() || 'uploaded-resume.pdf',
+      cleanedResumeText: cleanedResumeText.trim(),
+      jobDescriptionText: jobDescriptionText.trim(),
+      analysisResult: analysis,
+      overallScore: analysis.overallScore,
+      keywordMatchScore: analysis.keywordMatchScore,
+    })
+
+    res.status(200).json({
+      data: analysis,
+      meta: {
+        scanId,
+        scansUsed: scansUsed + 1,
+        scansLimit: env.freeTierMonthlyScanLimit,
+      },
+    })
   } catch (error) {
     if (error instanceof Error && error.message.includes('timed out')) {
       res.status(504).json({

@@ -2,6 +2,7 @@ import { useMemo, useState, type ChangeEvent, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ResultSkeleton } from '../components/results/ResultSkeleton'
 import { analyzeResume, parseResumePdf, type ResumeAnalysisResult } from '../services/scanService'
+import { getAuthToken } from '../services/authStorage'
 
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024
 
@@ -81,6 +82,12 @@ export function DashboardPage() {
     setServerError(null)
     setSuccessMessage(null)
 
+    if (!getAuthToken()) {
+      setValidationError('Please log in first to run and save scans.')
+      navigate('/login')
+      return
+    }
+
     if (!selectedFile) {
       setValidationError('Select a valid PDF resume before submitting.')
       return
@@ -104,6 +111,7 @@ export function DashboardPage() {
         cleanedResumeText: parseResponse.data.cleanedText,
         jobDescriptionText: jobDescription,
         targetRoleName: targetRole.trim() || undefined,
+        resumeFileName: parseResponse.data.fileName,
       })
 
       setActiveStep(2)

@@ -20,6 +20,18 @@ export interface ResumeAnalysisRequest {
   cleanedResumeText: string
   jobDescriptionText: string
   targetRoleName?: string
+  resumeFileName?: string
+}
+
+export interface AuthUser {
+  id: string
+  email: string
+  fullName?: string | null
+}
+
+export interface AuthResponse {
+  token: string
+  user: AuthUser
 }
 
 export interface ParsedResumePayload {
@@ -51,4 +63,12 @@ export interface ResumeScanResult {
   suggestedImprovements: string[]
   sectionAnalysis: SectionScore[]
   rewrittenBullets?: string[]
+}
+
+export interface ScanHistoryItem {
+  id: string
+  resumeFileName: string
+  overallScore: number | null
+  keywordMatchScore: number | null
+  createdAt: string
 }
