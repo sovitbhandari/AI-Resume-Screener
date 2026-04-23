@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express'
 import { loginUser, registerUser, signAuthToken } from '../services/auth.service.js'
+import { env } from '../config/env.js'
 
 const validateEmail = (email: string) => /\S+@\S+\.\S+/.test(email)
 
@@ -65,10 +66,15 @@ export const registerController = async (req: Request, res: Response) => {
       return
     }
 
+    console.error('registerController error:', error)
+
     res.status(500).json({
       error: {
         code: 'REGISTER_FAILED',
-        message: 'Unable to create account at this time.',
+        message:
+          env.nodeEnv === 'development' && error instanceof Error
+            ? `Unable to create account: ${error.message}`
+            : 'Unable to create account at this time.',
       },
     })
   }
@@ -112,10 +118,15 @@ export const loginController = async (req: Request, res: Response) => {
       return
     }
 
+    console.error('loginController error:', error)
+
     res.status(500).json({
       error: {
         code: 'LOGIN_FAILED',
-        message: 'Unable to login at this time.',
+        message:
+          env.nodeEnv === 'development' && error instanceof Error
+            ? `Unable to login: ${error.message}`
+            : 'Unable to login at this time.',
       },
     })
   }
