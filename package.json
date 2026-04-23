@@ -1,0 +1,16 @@
+{
+  "name": "ai-resume-screener",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "dev:client": "npm run dev --workspace client",
+    "dev:server": "npm run dev --workspace @ai-resume-screener/server",
+    "build:client": "npm run build --workspace client",
+    "build:server": "npm run build --workspace @ai-resume-screener/server"
+  },
+  "description": "AI Resume Screener monorepo foundation"
+}
