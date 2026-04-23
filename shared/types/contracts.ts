@@ -16,6 +16,12 @@ export interface ResumeScanRequest {
   resumeFileName?: string
 }
 
+export interface ResumeAnalysisRequest {
+  cleanedResumeText: string
+  jobDescriptionText: string
+  targetRoleName?: string
+}
+
 export interface ParsedResumePayload {
   fileName: string
   rawText: string
@@ -38,7 +44,10 @@ export interface ResumeScanResult {
   overallScore: number
   keywordMatchScore: number
   atsFormattingFeedback: string[]
+  missingKeywords: string[]
   missingSkills: string[]
+  strengths: string[]
+  weaknesses: string[]
   suggestedImprovements: string[]
   sectionAnalysis: SectionScore[]
   rewrittenBullets?: string[]

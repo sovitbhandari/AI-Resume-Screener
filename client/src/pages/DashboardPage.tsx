@@ -1,5 +1,7 @@
 import { useMemo, useState, type ChangeEvent, type FormEvent } from 'react'
-import { parseResumePdf } from '../services/scanService'
+import { useNavigate } from 'react-router-dom'
+import { ResultSkeleton } from '../components/results/ResultSkeleton'
+import { analyzeResume, parseResumePdf, type ResumeAnalysisResult } from '../services/scanService'
 
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024
 
@@ -11,11 +13,23 @@ type ParsedResult = {
   characterCount: number
 }
 
+const analysisSteps = [
+  'Parsing resume',
+  'Comparing with job description',
+  'Identifying missing skills',
+  'Building final analysis',
+]
+
 export function DashboardPage() {
+  const navigate = useNavigate()
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [jobDescription, setJobDescription] = useState('')
+  const [targetRole, setTargetRole] = useState('')
   const [validationError, setValidationError] = useState<string | null>(null)
   const [serverError, setServerError] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [activeStep, setActiveStep] = useState(0)
   const [parsedResult, setParsedResult] = useState<ParsedResult | null>(null)
 
   const fileDetails = useMemo(() => {
@@ -42,6 +56,7 @@ export function DashboardPage() {
   const onFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     setServerError(null)
+    setSuccessMessage(null)
     setParsedResult(null)
 
     if (!file) {
@@ -64,16 +79,46 @@ export function DashboardPage() {
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setServerError(null)
+    setSuccessMessage(null)
 
     if (!selectedFile) {
       setValidationError('Select a valid PDF resume before submitting.')
       return
     }
 
+    if (!jobDescription.trim()) {
+      setValidationError('Paste a job description before analyzing.')
+      return
+    }
+
     setIsLoading(true)
+    setActiveStep(0)
+    setValidationError(null)
     try {
-      const response = await parseResumePdf(selectedFile)
-      setParsedResult(response.data)
+      setActiveStep(0)
+      const parseResponse = await parseResumePdf(selectedFile)
+      setParsedResult(parseResponse.data)
+
+      setActiveStep(1)
+      const analysisResponse = await analyzeResume({
+        cleanedResumeText: parseResponse.data.cleanedText,
+        jobDescriptionText: jobDescription,
+        targetRoleName: targetRole.trim() || undefined,
+      })
+
+      setActiveStep(2)
+      setActiveStep(3)
+      setSuccessMessage('Analysis complete. Redirecting to results...')
+
+      const payload = {
+        parsedResume: parseResponse.data,
+        analysis: analysisResponse.data as ResumeAnalysisResult,
+        targetRoleName: targetRole.trim() || undefined,
+        jobDescriptionText: jobDescription,
+      }
+
+      sessionStorage.setItem('latestResumeAnalysis', JSON.stringify(payload))
+      navigate('/result', { state: payload })
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unexpected upload error.'
       setServerError(message)
@@ -85,7 +130,7 @@ export function DashboardPage() {
   return (
     <section className="card">
       <h2>Dashboard</h2>
-      <p>Upload a PDF resume to extract raw and cleaned text for downstream analysis.</p>
+      <p>Upload a PDF resume, paste a job description, and get a structured AI fit report.</p>
 
       <form className="upload-form" onSubmit={onSubmit}>
         <label htmlFor="resume-upload" className="upload-label">
@@ -99,15 +144,52 @@ export function DashboardPage() {
           onChange={onFileChange}
         />
         <p className="muted">Accepted format: PDF only. Maximum size: 5MB.</p>
+        <label htmlFor="target-role" className="upload-label">
+          Target Role (optional)
+        </label>
+        <input
+          id="target-role"
+          name="target-role"
+          type="text"
+          placeholder="Backend Software Engineer"
+          value={targetRole}
+          onChange={(event) => setTargetRole(event.target.value)}
+        />
+
+        <label htmlFor="job-description" className="upload-label">
+          Job Description
+        </label>
+        <textarea
+          id="job-description"
+          name="job-description"
+          placeholder="Paste the full job description here..."
+          value={jobDescription}
+          onChange={(event) => setJobDescription(event.target.value)}
+          rows={8}
+        />
 
         {fileDetails ? <p className="file-meta">Selected: {fileDetails}</p> : null}
         {validationError ? <p className="error-text">{validationError}</p> : null}
         {serverError ? <p className="error-text">{serverError}</p> : null}
+        {successMessage ? <p className="success-text">{successMessage}</p> : null}
 
         <button type="submit" disabled={isLoading || !selectedFile}>
-          {isLoading ? 'Parsing Resume...' : 'Upload and Parse Resume'}
+          {isLoading ? 'Analyzing Resume...' : 'Analyze Resume'}
         </button>
       </form>
+
+      {isLoading ? (
+        <>
+          <ol className="progress-steps">
+            {analysisSteps.map((step, index) => (
+              <li key={step} className={index <= activeStep ? 'active' : ''}>
+                {step}
+              </li>
+            ))}
+          </ol>
+          <ResultSkeleton />
+        </>
+      ) : null}
 
       {parsedResult ? (
         <div className="parsed-result">

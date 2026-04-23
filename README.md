@@ -2,7 +2,7 @@
 
 AI Resume Screener is a full-stack SaaS-style project that analyzes resume fit against a job description.
 
-This repository currently contains **Sprint 1 foundation work**: frontend and backend scaffolding, shared contracts, initial database schema, and architecture docs.
+This repository currently contains **Sprints 1-4 work**: project foundation, PDF parsing flow, backend LLM analysis engine, and a polished frontend results dashboard.
 
 ## Repository Structure
 
@@ -50,7 +50,7 @@ Backend default URL: `http://localhost:4000`
 
 Health endpoint: `GET http://localhost:4000/api/health`
 
-## Sprint 1 Deliverables
+## Current Deliverables (Sprints 1-4)
 
 - React routes and placeholder pages for:
   - Home
@@ -60,6 +60,9 @@ Health endpoint: `GET http://localhost:4000/api/health`
   - History
 - Express API scaffold with route/controller separation
 - Health check endpoint
+- Resume upload parsing endpoint: `POST /api/scans/parse-resume`
+- Resume analysis endpoint: `POST /api/scans/analyze`
+- Polished results dashboard with scorecards, insights, recommendations, and section analysis
 - Initial PostgreSQL schema in `server/src/db/schema.sql`
 - Shared TypeScript contracts in `shared/types/contracts.ts`
 - Architecture and sprint notes in `docs/`

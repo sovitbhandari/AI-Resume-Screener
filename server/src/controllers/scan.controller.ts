@@ -1,14 +1,84 @@
 import type { Request, Response } from 'express'
 import multer from 'multer'
 import { parseResumePdf } from '../services/pdf-parser.service.js'
+import { analyzeResume } from '../services/resume-analysis.service.js'
 
-export const analyzeResumePlaceholder = (_req: Request, res: Response) => {
-  res.status(501).json({
-    error: {
-      code: 'NOT_IMPLEMENTED',
-      message: 'Resume analysis endpoint is planned for Sprint 3.',
-    },
-  })
+export const analyzeResumeController = async (req: Request, res: Response) => {
+  const { cleanedResumeText, jobDescriptionText, targetRoleName } = req.body as {
+    cleanedResumeText?: string
+    jobDescriptionText?: string
+    targetRoleName?: string
+  }
+
+  if (!cleanedResumeText?.trim() || !jobDescriptionText?.trim()) {
+    res.status(400).json({
+      error: {
+        code: 'INVALID_INPUT',
+        message: 'cleanedResumeText and jobDescriptionText are required.',
+      },
+    })
+    return
+  }
+
+  try {
+    const analysis = await analyzeResume({
+      cleanedResumeText: cleanedResumeText.trim(),
+      jobDescriptionText: jobDescriptionText.trim(),
+      targetRoleName: targetRoleName?.trim() || undefined,
+    })
+
+    res.status(200).json({ data: analysis })
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('timed out')) {
+      res.status(504).json({
+        error: {
+          code: 'LLM_TIMEOUT',
+          message: error.message,
+        },
+      })
+      return
+    }
+
+    if (
+      error instanceof Error &&
+      (error.message.includes('valid JSON') || error.message.includes('JSON shape') || error.message.includes('JSON object'))
+    ) {
+      res.status(502).json({
+        error: {
+          code: 'MALFORMED_MODEL_RESPONSE',
+          message: error.message,
+        },
+      })
+      return
+    }
+
+    if (error instanceof Error && (error.message.includes('LLM_API_KEY') || error.message.includes('LLM_PROVIDER'))) {
+      res.status(500).json({
+        error: {
+          code: 'LLM_CONFIGURATION_ERROR',
+          message: error.message,
+        },
+      })
+      return
+    }
+
+    if (error instanceof Error) {
+      res.status(502).json({
+        error: {
+          code: 'ANALYSIS_FAILED',
+          message: error.message,
+        },
+      })
+      return
+    }
+
+    res.status(500).json({
+      error: {
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Unexpected server error while analyzing resume.',
+      },
+    })
+  }
 }
 
 export const parseResumeController = async (req: Request, res: Response) => {
