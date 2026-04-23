@@ -83,6 +83,12 @@ Backend default URL: `http://localhost:4000`
 
 Health endpoint: `GET http://localhost:4000/api/health`
 
+## UI Preview
+
+Result dashboard screenshot:
+
+![Resume Analysis Dashboard](docs/images/results-dashboard.png)
+
 ### 5) Quick verification flow
 
 Register:
