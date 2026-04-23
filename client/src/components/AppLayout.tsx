@@ -1,25 +1,32 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { clearAuthSession, getAuthUser } from '../services/authStorage'
 
-const navLinks = [
-  { to: '/', label: 'Home' },
-  { to: '/login', label: 'Login' },
-  { to: '/dashboard', label: 'Dashboard' },
-  { to: '/result', label: 'Result' },
-  { to: '/history', label: 'History' },
-]
-
 export function AppLayout() {
+  const navigate = useNavigate()
   const user = getAuthUser()
+  const navLinks = user
+    ? [
+        { to: '/', label: 'Home' },
+        { to: '/dashboard', label: 'Dashboard' },
+        { to: '/history', label: 'History' },
+      ]
+    : [
+        { to: '/', label: 'Home' },
+        { to: '/login', label: 'Login' },
+      ]
 
   return (
     <div className="app-shell">
       <header className="app-header">
-        <div>
+        <div className="brand-block">
           <h1>AI Resume Screener</h1>
-          {user ? <p className="header-user">Signed in as {user.email}</p> : <p className="header-user">Not logged in</p>}
+          {user ? (
+            <p className="header-user">Signed in as {user.email}</p>
+          ) : (
+            <p className="header-user">ATS insights in seconds</p>
+          )}
         </div>
-        <nav aria-label="Primary">
+        <nav aria-label="Primary" className="top-nav">
           <ul className="nav-list">
             {navLinks.map((link) => (
               <li key={link.to}>
@@ -35,10 +42,10 @@ export function AppLayout() {
               <li>
                 <button
                   type="button"
-                  className="ghost-button"
+                  className="nav-action"
                   onClick={() => {
                     clearAuthSession()
-                    window.location.href = '/login'
+                    navigate('/login')
                   }}
                 >
                   Logout
