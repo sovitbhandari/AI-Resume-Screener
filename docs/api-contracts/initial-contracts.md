@@ -1,4 +1,4 @@
-# Initial API Contracts (Sprint 1)
+# Initial API Contracts (Sprint 1-2)
 
 Shared contract definitions live in `shared/types/contracts.ts`.
 
@@ -13,6 +13,12 @@ Shared contract definitions live in `shared/types/contracts.ts`.
 
 - `ApiSuccessResponse<T>`
 - `ApiErrorResponse`
+- `ParseResumeResponse`
+  - `data.fileName`
+  - `data.rawText`
+  - `data.cleanedText`
+  - `data.pageCount`
+  - `data.characterCount`
 - `ResumeScanResult`
   - `overallScore`
   - `keywordMatchScore`
@@ -21,3 +27,9 @@ Shared contract definitions live in `shared/types/contracts.ts`.
   - `suggestedImprovements`
   - `sectionAnalysis`
   - optional `rewrittenBullets`
+
+## Parsing Endpoint
+
+- `POST /api/scans/parse-resume`
+  - `multipart/form-data`
+  - file field: `resume`

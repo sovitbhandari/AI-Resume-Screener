@@ -1,4 +1,4 @@
-# AI Resume Screener Architecture (Sprint 1)
+# AI Resume Screener Architecture (Sprint 1-2)
 
 ## System Overview
 
@@ -13,7 +13,7 @@
 1. The browser app sends requests to the API under `/api`.
 2. The API validates and orchestrates scan requests.
 3. The API stores scan metadata and results in PostgreSQL.
-4. Later sprints add resume parsing, LLM analysis, and quota enforcement.
+4. Current flow supports PDF parsing; later sprints add LLM analysis and quota enforcement.
 
 ## Backend Organization
 
@@ -33,7 +33,8 @@
 - `types` can host local-only UI types.
 - `utils` stores helper functions.
 
-## Initial API Surface
+## API Surface (Current)
 
 - `GET /api/health` health check endpoint.
+- `POST /api/scans/parse-resume` PDF upload and text extraction endpoint.
 - `POST /api/scans/analyze` placeholder endpoint for sprint scaffolding.

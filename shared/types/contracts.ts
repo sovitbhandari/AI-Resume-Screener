@@ -16,6 +16,18 @@ export interface ResumeScanRequest {
   resumeFileName?: string
 }
 
+export interface ParsedResumePayload {
+  fileName: string
+  rawText: string
+  cleanedText: string
+  pageCount: number
+  characterCount: number
+}
+
+export interface ParseResumeResponse {
+  data: ParsedResumePayload
+}
+
 export interface SectionScore {
   name: string
   score: number
