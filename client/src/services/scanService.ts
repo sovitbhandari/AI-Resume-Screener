@@ -149,3 +149,16 @@ export const fetchHistoryScan = async (scanId: string): Promise<HistoryDetailRes
 
   return json as HistoryDetailResponse
 }
+
+export const deleteHistoryScan = async (scanId: string): Promise<void> => {
+  const response = await fetch(`${API_BASE_URL}/history/${scanId}`, {
+    method: 'DELETE',
+    headers: withAuthHeaders(),
+  })
+
+  const json = (await response.json()) as { data?: { deleted: boolean } } | ApiErrorResponse
+  if (!response.ok) {
+    const message = 'error' in json ? json.error.message : 'Unable to delete scan.'
+    throw new Error(message)
+  }
+}

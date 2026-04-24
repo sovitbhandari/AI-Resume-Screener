@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { fetchHistory, fetchHistoryScan, type ScanHistoryItem } from '../services/scanService'
+import { deleteHistoryScan, fetchHistory, fetchHistoryScan, type ScanHistoryItem } from '../services/scanService'
 import { getAuthToken } from '../services/authStorage'
 
 export function HistoryPage() {
@@ -54,6 +54,21 @@ export function HistoryPage() {
     }
   }
 
+  const onDeleteScan = async (scanId: string) => {
+    const confirmed = window.confirm('Delete this scan from your history? This cannot be undone.')
+    if (!confirmed) {
+      return
+    }
+
+    try {
+      await deleteHistoryScan(scanId)
+      setHistory((prev) => prev.filter((scan) => scan.id !== scanId))
+    } catch (deleteError) {
+      const message = deleteError instanceof Error ? deleteError.message : 'Unable to delete scan.'
+      setError(message)
+    }
+  }
+
   if (isLoading) {
     return (
       <section className="card">
@@ -92,9 +107,14 @@ export function HistoryPage() {
                   <td>{scan.keyword_match_score ?? '-'}</td>
                   <td>{new Date(scan.created_at).toLocaleString()}</td>
                   <td>
-                    <button type="button" className="ghost-button" onClick={() => openScan(scan.id)}>
-                      Open
-                    </button>
+                    <div className="history-actions">
+                      <button type="button" className="ghost-button" onClick={() => openScan(scan.id)}>
+                        Open
+                      </button>
+                      <button type="button" className="ghost-button danger-button" onClick={() => onDeleteScan(scan.id)}>
+                        Delete
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

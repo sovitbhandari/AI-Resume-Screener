@@ -116,3 +116,14 @@ export const getScanById = async (userId: string, scanId: string) => {
 
   return result.rows[0] ?? null
 }
+
+export const deleteScanById = async (userId: string, scanId: string) => {
+  const result = await db.query<{ id: string }>(
+    `DELETE FROM resume_scans
+     WHERE user_id = $1 AND id = $2
+     RETURNING id`,
+    [userId, scanId],
+  )
+
+  return (result.rowCount ?? 0) > 0
+}
