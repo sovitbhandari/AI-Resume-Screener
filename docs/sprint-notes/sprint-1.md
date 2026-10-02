@@ -1,7 +1,7 @@
 # Sprint 1 Notes
 
 ## Goal
-Establish a production-style project foundation for the AI Resume Screener.
+Establish a production-style project foundation for the Grounded Resume Analyze.
 
 ## Delivered
 

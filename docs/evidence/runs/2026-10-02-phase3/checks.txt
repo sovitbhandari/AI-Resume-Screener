@@ -5,10 +5,10 @@
 # Migrations were applied only to database ai_resume_screener_test.
 # The existing ai_resume_screener database was not migrated.
 
-## npm run typecheck --workspace @ai-resume-screener/server && npm run lint --workspace client
+## npm run typecheck --workspace @grounded-resume-analyze/server && npm run lint --workspace client
 exit 0
 
-> @ai-resume-screener/server@0.1.0 typecheck
+> @grounded-resume-analyze/server@0.1.0 typecheck
 > tsc --noEmit -p tsconfig.json
 
 > client@0.0.0 lint
@@ -17,13 +17,13 @@ exit 0
 ## npm test
 exit 0
 
-> ai-resume-screener@0.1.0 test
-> npm run test --workspace @ai-resume-screener/server && npm run test --workspace client
+> grounded-resume-analyze@0.1.0 test
+> npm run test --workspace @grounded-resume-analyze/server && npm run test --workspace client
 
-> @ai-resume-screener/server@0.1.0 test
+> @grounded-resume-analyze/server@0.1.0 test
 > vitest run
 
- RUN  v5.0.3 /Users/sovitbhandari/Documents/AI-Resume-Screener/server
+ RUN  v5.0.3 /Users/sovitbhandari/Documents/Grounded-Resume-Analyze/server
 
  Test Files  8 passed (8)
       Tests  43 passed (43)
@@ -33,17 +33,17 @@ exit 0
 > client@0.0.0 test
 > vitest run
 
- RUN  v5.0.3 /Users/sovitbhandari/Documents/AI-Resume-Screener/client
+ RUN  v5.0.3 /Users/sovitbhandari/Documents/Grounded-Resume-Analyze/client
 
  Test Files  3 passed (3)
       Tests  4 passed (4)
    Start at  15:17:21
    Duration  784ms
 
-## npm run test:pg --workspace @ai-resume-screener/server
+## npm run test:pg --workspace @grounded-resume-analyze/server
 # First execution, before the same-key test dispatched its request. exit 1
 
- RUN  v5.0.3 /Users/sovitbhandari/Documents/AI-Resume-Screener/server
+ RUN  v5.0.3 /Users/sovitbhandari/Documents/Grounded-Resume-Analyze/server
 
 stdout | test/pg/scan-operations.test.ts > scan operation quota on PostgreSQL
 applied 0001_initial
@@ -66,10 +66,10 @@ AssertionError: expected +0 to be 1 // Object.is equality
 The supertest request was built and not sent, so the provider counter stayed 0.
 The other 14 tests in that file passed, including the 2/10/50 slot schedule.
 
-## npm run test:pg --workspace @ai-resume-screener/server
+## npm run test:pg --workspace @grounded-resume-analyze/server
 # Second execution after the request was started with .then(). exit 0
 
- RUN  v5.0.3 /Users/sovitbhandari/Documents/AI-Resume-Screener/server
+ RUN  v5.0.3 /Users/sovitbhandari/Documents/Grounded-Resume-Analyze/server
 
  Test Files  1 passed (1)
       Tests  15 passed (15)

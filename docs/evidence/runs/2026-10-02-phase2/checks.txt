@@ -6,7 +6,7 @@ npm: 10.9.2
 repetitions: 1 for the final sequence below
 workload: synthetic fixtures, in-memory user directory, no live provider, no database migration
 
-command: npm test && npm run typecheck --workspace @ai-resume-screener/server && npm run lint --workspace client
+command: npm test && npm run typecheck --workspace @grounded-resume-analyze/server && npm run lint --workspace client
 exit: 0
 
 server vitest 5.0.3: Test Files 8 passed (8); Tests 42 passed (42); duration 923ms

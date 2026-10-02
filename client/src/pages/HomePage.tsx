@@ -6,33 +6,33 @@ export function HomePage() {
 
   const features = [
     {
-      title: 'Resume-to-Job Matching',
-      description: 'Compare your resume against real job descriptions with structured scoring for fast decision-making.',
+      title: 'Source-Linked Evidence',
+      description: 'Compare resume text against job requirements with citations that point back to exact source quotes.',
     },
     {
-      title: 'ATS Feedback',
-      description: 'Get keyword gaps, formatting guidance, and actionable weaknesses that hiring systems actually care about.',
+      title: 'Grounded Feedback',
+      description: 'See supported, partial, and not-evidenced requirements without pretending to predict employer decisions.',
     },
     {
       title: 'Saved Scan History',
-      description: 'Track every analysis over time so you can iterate and improve your resume with confidence.',
+      description: 'Reopen past evidence reports and iterate on resume changes with authenticated history.',
     },
   ]
 
   const steps = [
     'Upload your resume PDF and paste the job description.',
-    'AI parses, scores, and identifies missing keywords and skills.',
-    'Review recommendations and reopen past scans anytime.',
+    'The report links job requirements to exact resume and JD evidence.',
+    'Review extraction warnings, recommendations, and past scans anytime.',
   ]
 
   return (
     <section className="home-layout">
       <article className="home-hero card">
-        <p className="hero-kicker">AI-Powered Resume Optimization</p>
-        <h2>Turn any resume into a role-targeted application in minutes</h2>
+        <p className="hero-kicker">Evidence-grounded resume analysis</p>
+        <h2>Understand which job requirements your resume actually evidences</h2>
         <p className="hero-subtext">
-          AI Resume Screener analyzes your resume against a job description and gives a clear score breakdown, gaps, and
-          practical fixes.
+          Grounded Resume Analyze compares extracted resume text with a job description and shows source-linked evidence,
+          gaps, extraction warnings, and practical fixes.
         </p>
         <div className="hero-actions">
           <Link className="primary-link-button" to={isLoggedIn ? '/dashboard' : '/login'}>

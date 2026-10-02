@@ -1,5 +1,5 @@
 {
-  "name": "ai-resume-screener",
+  "name": "grounded-resume-analyze",
   "version": "0.1.0",
   "private": true,
   "engines": {
@@ -11,12 +11,12 @@
   ],
   "scripts": {
     "dev:client": "npm run dev --workspace client",
-    "dev:server": "npm run dev --workspace @ai-resume-screener/server",
+    "dev:server": "npm run dev --workspace @grounded-resume-analyze/server",
     "build:client": "npm run build --workspace client",
-    "build:server": "npm run build --workspace @ai-resume-screener/server",
-    "test": "npm run test --workspace @ai-resume-screener/server && npm run test --workspace client",
-    "test:pg": "npm run test:pg --workspace @ai-resume-screener/server",
-    "db:migrate": "npm run db:migrate --workspace @ai-resume-screener/server"
+    "build:server": "npm run build --workspace @grounded-resume-analyze/server",
+    "test": "npm run test --workspace @grounded-resume-analyze/server && npm run test --workspace client",
+    "test:pg": "npm run test:pg --workspace @grounded-resume-analyze/server",
+    "db:migrate": "npm run db:migrate --workspace @grounded-resume-analyze/server"
   },
-  "description": "AI Resume Screener monorepo foundation"
+  "description": "Grounded Resume Analyze monorepo foundation"
 }

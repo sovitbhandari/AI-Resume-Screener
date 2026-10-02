@@ -4,7 +4,7 @@ import { db } from '../lib/db.js'
 export const getLiveness = (_req: Request, res: Response) => {
   res.status(200).json({
     status: 'ok',
-    service: 'ai-resume-screener-api',
+    service: 'grounded-resume-analyze-api',
     timestamp: new Date().toISOString(),
   })
 }
@@ -24,7 +24,7 @@ export const getReadiness = async (_req: Request, res: Response) => {
   const ready = Object.values(checks).every(Boolean)
   res.status(ready ? 200 : 503).json({
     status: ready ? 'ready' : 'not_ready',
-    service: 'ai-resume-screener-api',
+    service: 'grounded-resume-analyze-api',
     checks,
     timestamp: new Date().toISOString(),
   })

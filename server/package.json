@@ -1,5 +1,5 @@
 {
-  "name": "@ai-resume-screener/server",
+  "name": "@grounded-resume-analyze/server",
   "version": "0.1.0",
   "private": true,
   "type": "module",

@@ -11,7 +11,7 @@ dist/assets/index-Ieh0-MDU.css 6.20 kB
 dist/assets/index-DyrQqesE.js 249.80 kB
 built in 326ms
 
-npm run typecheck --workspace @ai-resume-screener/server
+npm run typecheck --workspace @grounded-resume-analyze/server
 tsc --noEmit -p tsconfig.json
 (no compiler diagnostics)
 

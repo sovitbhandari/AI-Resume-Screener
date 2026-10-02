@@ -3,13 +3,13 @@
 # HEAD 1b0a6b3d0a7a1642affa62d459095c4d76accd7f, worktree uncommitted
 # No live model provider was called. Scripted durations are not latency measurements.
 
-## npm run typecheck --workspace @ai-resume-screener/server && npm test
+## npm run typecheck --workspace @grounded-resume-analyze/server && npm test
 exit 0
 
-> @ai-resume-screener/server@0.1.0 typecheck
+> @grounded-resume-analyze/server@0.1.0 typecheck
 > tsc --noEmit -p tsconfig.json
 
-> @ai-resume-screener/server@0.1.0 test
+> @grounded-resume-analyze/server@0.1.0 test
 > vitest run
 
  Test Files  9 passed (9)
@@ -25,7 +25,7 @@ exit 0
    Start at  15:37:01
    Duration  827ms
 
-## npm run test:pg --workspace @ai-resume-screener/server
+## npm run test:pg --workspace @grounded-resume-analyze/server
 exit 0
 
  Test Files  1 passed (1)

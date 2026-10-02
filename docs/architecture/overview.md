@@ -1,4 +1,4 @@
-# AI Resume Screener Architecture (Sprint 1-5)
+# Grounded Resume Analyze Architecture (Sprint 1-5)
 
 ## System Overview
 

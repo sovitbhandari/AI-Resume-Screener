@@ -1,4 +1,4 @@
-command: npm ci && npm run build:server && npm run build:client && npm run typecheck --workspace @ai-resume-screener/server && npm run lint --workspace client && npm test
+command: npm ci && npm run build:server && npm run build:client && npm run typecheck --workspace @grounded-resume-analyze/server && npm run lint --workspace client && npm test
 when: after the lockfile included Vitest, Supertest, Testing Library, and jsdom
 exit: 0
 repetitions: 1

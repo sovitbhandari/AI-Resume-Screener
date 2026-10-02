@@ -19,7 +19,7 @@ export function AppLayout() {
     <div className="app-shell">
       <header className="app-header">
         <div className="brand-block">
-          <h1>AI Resume Screener</h1>
+          <h1>Grounded Resume Analyze</h1>
           {user ? (
             <p className="header-user">Signed in as {user.email}</p>
           ) : (

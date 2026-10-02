@@ -57,19 +57,19 @@ jobs:
         run: npm run lint --workspace client
 
       - name: Typecheck server
-        run: npm run typecheck --workspace @ai-resume-screener/server
+        run: npm run typecheck --workspace @grounded-resume-analyze/server
 
       - name: Build server
-        run: npm run build --workspace @ai-resume-screener/server
+        run: npm run build --workspace @grounded-resume-analyze/server
 
       - name: Build client
         run: npm run build --workspace client
 
       - name: Unit/API tests
-        run: npm run test --workspace @ai-resume-screener/server
+        run: npm run test --workspace @grounded-resume-analyze/server
 
       - name: Client tests
         run: npm run test --workspace client
 
       - name: PostgreSQL quota and migration tests
-        run: npm run test:pg --workspace @ai-resume-screener/server
+        run: npm run test:pg --workspace @grounded-resume-analyze/server

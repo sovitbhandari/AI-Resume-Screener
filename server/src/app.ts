@@ -84,7 +84,7 @@ export const createApp = (deps: ApiRouterDeps = {}) => {
 
   app.get('/', (_req, res) => {
     res.status(200).json({
-      message: 'AI Resume Screener API',
+      message: 'Grounded Resume Analyze API',
       status: 'ok',
     })
   })

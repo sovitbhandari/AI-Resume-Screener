@@ -1,4 +1,4 @@
-# AI Resume Screener
+# Grounded Resume Analyze
 
 A full-stack AI resume analysis system that focuses on **source-supported evidence** instead of opaque “ATS scores.”
 
@@ -85,7 +85,7 @@ No live AI quality, uptime, throughput, fairness, or ATS-accuracy claim is made 
 ## Repository Structure
 
 ```text
-AI-Resume-Screener/
+Grounded-Resume-Analyze/
   client/   React application
   server/   Express API, provider adapters, scan operations, PDF parsing
   shared/   Shared contracts and runtime schemas

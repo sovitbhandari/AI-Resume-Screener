@@ -1,4 +1,4 @@
-command: npm run test --workspace @ai-resume-screener/server
+command: npm run test --workspace @grounded-resume-analyze/server
 when: first server test run, before fixture and auth-test adjustments
 vitest: 5.0.3
 exit: 1
