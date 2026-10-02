@@ -22,11 +22,11 @@ jobs:
         env:
           POSTGRES_USER: resume_dev
           POSTGRES_PASSWORD: resume_dev
-          POSTGRES_DB: ai_resume_screener_test
+          POSTGRES_DB: ai_resume_screener
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U resume_dev -d ai_resume_screener_test"
+          --health-cmd "pg_isready -U resume_dev -d ai_resume_screener"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 20
