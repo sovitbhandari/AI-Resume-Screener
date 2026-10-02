@@ -1,0 +1,87 @@
+# Phase 3 checks, 2026-10-02
+# Node v22.16.0, npm 10.9.2, darwin arm64
+# HEAD 1b0a6b3d0a7a1642affa62d459095c4d76accd7f, worktree uncommitted
+# PostgreSQL was already listening on 127.0.0.1:5432. docker compose up was not run.
+# Migrations were applied only to database ai_resume_screener_test.
+# The existing ai_resume_screener database was not migrated.
+
+## npm run typecheck --workspace @ai-resume-screener/server && npm run lint --workspace client
+exit 0
+
+> @ai-resume-screener/server@0.1.0 typecheck
+> tsc --noEmit -p tsconfig.json
+
+> client@0.0.0 lint
+> eslint .
+
+## npm test
+exit 0
+
+> ai-resume-screener@0.1.0 test
+> npm run test --workspace @ai-resume-screener/server && npm run test --workspace client
+
+> @ai-resume-screener/server@0.1.0 test
+> vitest run
+
+ RUN  v5.0.3 /Users/sovitbhandari/Documents/AI-Resume-Screener/server
+
+ Test Files  8 passed (8)
+      Tests  43 passed (43)
+   Start at  15:17:20
+   Duration  1.07s
+
+> client@0.0.0 test
+> vitest run
+
+ RUN  v5.0.3 /Users/sovitbhandari/Documents/AI-Resume-Screener/client
+
+ Test Files  3 passed (3)
+      Tests  4 passed (4)
+   Start at  15:17:21
+   Duration  784ms
+
+## npm run test:pg --workspace @ai-resume-screener/server
+# First execution, before the same-key test dispatched its request. exit 1
+
+ RUN  v5.0.3 /Users/sovitbhandari/Documents/AI-Resume-Screener/server
+
+stdout | test/pg/scan-operations.test.ts > scan operation quota on PostgreSQL
+applied 0001_initial
+
+stdout | test/pg/scan-operations.test.ts > scan operation quota on PostgreSQL
+applied 0002_scan_operations
+
+ ❯ test/pg/scan-operations.test.ts (15 tests | 1 failed) 2186ms
+     × returns the in-flight operation for a concurrent same-key retry 1021ms
+
+ FAIL  test/pg/scan-operations.test.ts > scan operation quota on PostgreSQL > returns the in-flight operation for a concurrent same-key retry
+AssertionError: expected +0 to be 1 // Object.is equality
+
+- Expected
++ Received
+
+- 1
++ 0
+
+The supertest request was built and not sent, so the provider counter stayed 0.
+The other 14 tests in that file passed, including the 2/10/50 slot schedule.
+
+## npm run test:pg --workspace @ai-resume-screener/server
+# Second execution after the request was started with .then(). exit 0
+
+ RUN  v5.0.3 /Users/sovitbhandari/Documents/AI-Resume-Screener/server
+
+ Test Files  1 passed (1)
+      Tests  15 passed (15)
+   Start at  15:18:27
+   Duration  828ms (tests 79%, import 11%, transform 10%)
+
+Schedules in that file: one slot left with 2, 10, and 50 distinct keys;
+concurrent same key; payload mismatch; two users; UTC month boundary;
+crash after reserve; crash after provider acceptance; finalization rollback
+via a closed insert trigger; repeated recovery; history delete; expired
+operation cannot finalize; unknown outcome kept; known failure released;
+key reuse only after purge; plans.monthly_scan_limit ignored; 0002 backfill
+of a scans_used=3 row.
+
+No live model provider was called. This file does not claim exactly-once delivery.

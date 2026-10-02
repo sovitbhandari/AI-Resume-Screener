@@ -15,6 +15,7 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/result" element={<ScanResultPage />} />
+        <Route path="/result/:scanId" element={<ScanResultPage />} />
         <Route path="/history" element={<HistoryPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

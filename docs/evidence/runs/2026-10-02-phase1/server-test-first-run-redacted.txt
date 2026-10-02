@@ -1,0 +1,28 @@
+command: npm run test --workspace @ai-resume-screener/server
+when: first server test run, before fixture and auth-test adjustments
+vitest: 5.0.3
+exit: 1
+result: Test Files 2 failed | 5 passed (7); Tests 2 failed | 22 passed (24)
+
+Failure 1
+test/auth-validation.test.ts
+authentication request validation > rejects an otherwise usable email that has surrounding whitespace
+AssertionError: expected 500 to be 400
+The register handler logged a PostgreSQL error and continued to a 500 response.
+Driver code: 3D000
+severity: FATAL
+The error text named a local database that does not exist. That database name is omitted here.
+The request used email " owner@example.com " and password "password123".
+This case was removed from the default suite so later runs do not require PostgreSQL.
+See docs/evidence/baseline-failures.md.
+
+Failure 2
+test/pdf-fixture.test.ts
+synthetic resume PDF > extracts the provenance expected text
+AssertionError: expected cleaned text to be "Synthetic resume fixture"
+Received cleaned text:
+Synthetic resume fixture
+
+-- 1 of 1 --
+pageCount assertion had already passed (1).
+Provenance expectedExtraction.cleanedText was then set to the received text.

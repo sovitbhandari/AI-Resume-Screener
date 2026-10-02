@@ -1,8 +1,8 @@
-import { useMemo, useState, type ChangeEvent, type FormEvent } from 'react'
+import { useMemo, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ResultSkeleton } from '../components/results/ResultSkeleton'
-import { analyzeResume, parseResumePdf, type ResumeAnalysisResult } from '../services/scanService'
-import { getAuthToken } from '../services/authStorage'
+import { ApiClientError, analyzeResume, parseResumePdf } from '../services/scanService'
+import { getAuthToken, setLatestScanId } from '../services/authStorage'
 
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024
 
@@ -14,12 +14,18 @@ type ParsedResult = {
   characterCount: number
 }
 
-const analysisSteps = [
-  'Parsing resume',
-  'Comparing with job description',
-  'Identifying missing skills',
-  'Building final analysis',
-]
+type RunStatus = 'idle' | 'uploading' | 'parsing' | 'submitted' | 'analyzing' | 'completed' | 'failed' | 'cancelled'
+
+const statusText: Record<RunStatus, string> = {
+  idle: 'Ready',
+  uploading: 'Uploading resume',
+  parsing: 'Extracting resume text',
+  submitted: 'Submitted for analysis',
+  analyzing: 'Analyzing evidence',
+  completed: 'Completed',
+  failed: 'Failed',
+  cancelled: 'Cancelled',
+}
 
 export function DashboardPage() {
   const navigate = useNavigate()
@@ -29,9 +35,12 @@ export function DashboardPage() {
   const [validationError, setValidationError] = useState<string | null>(null)
   const [serverError, setServerError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const [activeStep, setActiveStep] = useState(0)
+  const [runStatus, setRunStatus] = useState<RunStatus>('idle')
+  const [usageMessage, setUsageMessage] = useState<string | null>(null)
   const [parsedResult, setParsedResult] = useState<ParsedResult | null>(null)
+  const abortRef = useRef<AbortController | null>(null)
+  const runIdRef = useRef(0)
+  const isLoading = ['uploading', 'parsing', 'submitted', 'analyzing'].includes(runStatus)
 
   const fileDetails = useMemo(() => {
     if (!selectedFile) {
@@ -81,6 +90,7 @@ export function DashboardPage() {
     event.preventDefault()
     setServerError(null)
     setSuccessMessage(null)
+    setUsageMessage(null)
 
     if (!getAuthToken()) {
       setValidationError('Please log in first to run and save scans.')
@@ -98,41 +108,85 @@ export function DashboardPage() {
       return
     }
 
-    setIsLoading(true)
-    setActiveStep(0)
+    runIdRef.current += 1
+    const runId = runIdRef.current
+    abortRef.current?.abort()
+    const abortController = new AbortController()
+    abortRef.current = abortController
+    setRunStatus('uploading')
     setValidationError(null)
     try {
-      setActiveStep(0)
-      const parseResponse = await parseResumePdf(selectedFile)
+      const parseResponse = await parseResumePdf(selectedFile, { signal: abortController.signal })
+      if (runId !== runIdRef.current) {
+        return
+      }
+      setRunStatus('parsing')
       setParsedResult(parseResponse.data)
 
-      setActiveStep(1)
+      setRunStatus('submitted')
+      setRunStatus('analyzing')
       const analysisResponse = await analyzeResume({
         cleanedResumeText: parseResponse.data.cleanedText,
         jobDescriptionText: jobDescription,
         targetRoleName: targetRole.trim() || undefined,
         resumeFileName: parseResponse.data.fileName,
-      })
-
-      setActiveStep(2)
-      setActiveStep(3)
-      setSuccessMessage('Analysis complete. Redirecting to results...')
-
-      const payload = {
-        parsedResume: parseResponse.data,
-        analysis: analysisResponse.data as ResumeAnalysisResult,
-        targetRoleName: targetRole.trim() || undefined,
-        jobDescriptionText: jobDescription,
+        idempotencyKey: crypto.randomUUID(),
+      }, { signal: abortController.signal })
+      if (runId !== runIdRef.current) {
+        return
       }
 
-      sessionStorage.setItem('latestResumeAnalysis', JSON.stringify(payload))
-      navigate('/result', { state: payload })
+      setRunStatus('completed')
+      setUsageMessage(`Monthly scans: ${analysisResponse.meta.scansUsed}/${analysisResponse.meta.scansLimit} used.`)
+      setSuccessMessage('Analysis complete. Redirecting to results...')
+
+      if (analysisResponse.meta.scanId) {
+        setLatestScanId(analysisResponse.meta.scanId)
+        navigate(`/result/${analysisResponse.meta.scanId}`)
+        return
+      }
+      navigate('/result', {
+        state: {
+          parsedResume: parseResponse.data,
+          analysis: analysisResponse.data,
+          targetRoleName: targetRole.trim() || undefined,
+          jobDescriptionText: jobDescription,
+        },
+      })
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unexpected upload error.'
-      setServerError(message)
+      if (runId !== runIdRef.current) {
+        return
+      }
+      if (error instanceof ApiClientError && error.code === 'REQUEST_CANCELLED') {
+        setRunStatus('cancelled')
+        setServerError('Cancelled in this browser. If the analysis had already reached the provider, server work may still finish under the same idempotency key.')
+      } else {
+        setRunStatus('failed')
+        const message = error instanceof Error ? error.message : 'Unexpected upload error.'
+        const code = error instanceof ApiClientError ? error.code : ''
+        if (code === 'QUOTA_EXCEEDED') {
+          setServerError(`Quota exceeded: ${message}`)
+        } else if (code === 'OPERATION_IN_PROGRESS' || code === 'PROVIDER_OUTCOME_UNKNOWN') {
+          setServerError(`${message} Retry later; the server will not duplicate provider work for the same idempotency key.`)
+        } else if (code === 'LLM_REFUSAL') {
+          setServerError(`Provider refusal: ${message}`)
+        } else {
+          setServerError(message)
+        }
+      }
     } finally {
-      setIsLoading(false)
+      if (runId === runIdRef.current) {
+        abortRef.current = null
+      }
     }
+  }
+
+  const onCancel = () => {
+    runIdRef.current += 1
+    abortRef.current?.abort()
+    abortRef.current = null
+    setRunStatus('cancelled')
+    setServerError('Cancelled in this browser. Cancellation may not stop provider work once the analysis request has been accepted by the server.')
   }
 
   return (
@@ -177,24 +231,30 @@ export function DashboardPage() {
         />
 
         {fileDetails ? <p className="file-meta">Selected: {fileDetails}</p> : null}
-        {validationError ? <p className="error-text">{validationError}</p> : null}
-        {serverError ? <p className="error-text">{serverError}</p> : null}
-        {successMessage ? <p className="success-text">{successMessage}</p> : null}
+        <div aria-live="polite">
+          {usageMessage ? <p className="muted">{usageMessage}</p> : null}
+          {validationError ? <p className="error-text">{validationError}</p> : null}
+          {serverError ? <p className="error-text">{serverError}</p> : null}
+          {successMessage ? <p className="success-text">{successMessage}</p> : null}
+        </div>
 
         <button type="submit" disabled={isLoading || !selectedFile}>
-          {isLoading ? 'Analyzing Resume...' : 'Analyze Resume'}
+          {isLoading ? statusText[runStatus] : 'Analyze Resume'}
         </button>
+        {isLoading ? (
+          <button type="button" className="ghost-button" onClick={onCancel}>
+            Cancel
+          </button>
+        ) : null}
       </form>
 
       {isLoading ? (
         <>
-          <ol className="progress-steps">
-            {analysisSteps.map((step, index) => (
-              <li key={step} className={index <= activeStep ? 'active' : ''}>
-                {step}
-              </li>
-            ))}
-          </ol>
+          <p className="progress-steps" role="status" aria-live="polite">
+            {runStatus === 'analyzing' || runStatus === 'submitted'
+              ? 'Analyzing with an indeterminate synchronous request. No partial JSON is trusted before completion.'
+              : statusText[runStatus]}
+          </p>
           <ResultSkeleton />
         </>
       ) : null}

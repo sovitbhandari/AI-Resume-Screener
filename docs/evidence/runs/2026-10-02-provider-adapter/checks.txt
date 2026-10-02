@@ -1,0 +1,36 @@
+# Provider adapter checks, 2026-10-02
+# Node v22.16.0, npm 10.9.2, darwin arm64
+# HEAD 1b0a6b3d0a7a1642affa62d459095c4d76accd7f, worktree uncommitted
+# No live model provider was called. Scripted durations are not latency measurements.
+
+## npm run typecheck --workspace @ai-resume-screener/server && npm test
+exit 0
+
+> @ai-resume-screener/server@0.1.0 typecheck
+> tsc --noEmit -p tsconfig.json
+
+> @ai-resume-screener/server@0.1.0 test
+> vitest run
+
+ Test Files  9 passed (9)
+      Tests  56 passed (56)
+   Start at  15:37:00
+   Duration  1.00s
+
+> client@0.0.0 test
+> vitest run
+
+ Test Files  3 passed (3)
+      Tests  4 passed (4)
+   Start at  15:37:01
+   Duration  827ms
+
+## npm run test:pg --workspace @ai-resume-screener/server
+exit 0
+
+ Test Files  1 passed (1)
+      Tests  15 passed (15)
+   Start at  15:37:13
+   Duration  861ms
+
+The PostgreSQL file was rerun because scan admission now treats timeout, network, and upstream failures as uncertain. The quota schedules still passed. This rerun is not a new capacity result.

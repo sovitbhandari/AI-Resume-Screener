@@ -1,0 +1,11 @@
+command: npm ci
+cwd: repository root
+when: before test dependencies were added
+exit: 0
+node_modules: absent before the command
+
+added 294 packages, and audited 297 packages in 3s
+
+13 vulnerabilities (3 low, 2 moderate, 8 high)
+
+npm printed an audit summary and a notice that npm 12.2.0 is available. npm audit fix was not run.

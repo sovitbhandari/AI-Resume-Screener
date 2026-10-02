@@ -1,0 +1,5 @@
+{
+  "artifact": "synthetic-analysis.json",
+  "origin": "Hand-written in this repository for offline tests. Not a live provider response and not a real resume.",
+  "expectedOutcome": "normalizeResumeAnalysis accepts the object. Scores and section feedback are returned unchanged. rewrittenBullets is absent."
+}

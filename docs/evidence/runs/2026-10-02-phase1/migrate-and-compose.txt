@@ -1,0 +1,14 @@
+npm run db:migrate
+First attempt inside the sandbox exited 1 before the migrator body ran.
+tsx failed with listen EPERM on a temp pipe. That attempt did not show the DATABASE_URL check.
+
+Second attempt outside the sandbox:
+exit: 1
+stdout included: injected env (0) from .env
+stderr: DATABASE_URL is required to run migrations.
+No database connection was opened. No migration was applied.
+
+docker compose config
+exit: 0
+Rendered a postgres:17 service with POSTGRES_USER resume_dev, POSTGRES_DB ai_resume_screener, and published port 5432.
+docker compose up was not run. No container was started.

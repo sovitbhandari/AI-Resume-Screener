@@ -1,85 +1,12 @@
-import { randomUUID } from 'node:crypto'
 import { db } from '../lib/db.js'
 
-type SaveScanParams = {
-  userId: string
-  resumeFileName: string
-  cleanedResumeText: string
-  jobDescriptionText: string
-  analysisResult: unknown
-  overallScore: number
-  keywordMatchScore: number
-}
-
-const currentMonthBounds = () => {
-  const now = new Date()
-  const periodStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1))
-  const periodEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0))
-  return {
-    periodStart: periodStart.toISOString().slice(0, 10),
-    periodEnd: periodEnd.toISOString().slice(0, 10),
+export const getScanHistory = async (userId: string, page: { limit: number; cursor?: { createdAt: string; id: string } }) => {
+  const params: unknown[] = [userId, page.limit + 1]
+  let cursorClause = ''
+  if (page.cursor) {
+    params.push(page.cursor.createdAt, page.cursor.id)
+    cursorClause = `AND (created_at, id) < ($3::timestamptz, $4::uuid)`
   }
-}
-
-export const getUsageForCurrentMonth = async (userId: string) => {
-  const { periodStart } = currentMonthBounds()
-  const result = await db.query<{ scans_used: number }>(
-    `SELECT COALESCE(SUM(scans_used), 0)::int AS scans_used
-     FROM usage_tracking
-     WHERE user_id = $1 AND period_start = $2`,
-    [userId, periodStart],
-  )
-
-  return result.rows[0]?.scans_used ?? 0
-}
-
-export const saveScanWithUsageUpdate = async (params: SaveScanParams) => {
-  const client = await db.connect()
-  try {
-    await client.query('BEGIN')
-    const scanId = randomUUID()
-    const { periodStart, periodEnd } = currentMonthBounds()
-
-    await client.query(
-      `INSERT INTO resume_scans (
-        id, user_id, resume_file_name, resume_text, job_description,
-        overall_score, keyword_match_score, result_json
-      )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb)`,
-      [
-        scanId,
-        params.userId,
-        params.resumeFileName,
-        params.cleanedResumeText,
-        params.jobDescriptionText,
-        params.overallScore,
-        params.keywordMatchScore,
-        JSON.stringify(params.analysisResult),
-      ],
-    )
-
-    await client.query(
-      `INSERT INTO usage_tracking (id, user_id, scan_id, period_start, period_end, scans_used)
-       VALUES ($1, $2, $3, $4, $5, 1)
-       ON CONFLICT (user_id, period_start, period_end)
-       DO UPDATE SET
-         scans_used = usage_tracking.scans_used + 1,
-         scan_id = EXCLUDED.scan_id,
-         updated_at = NOW()`,
-      [randomUUID(), params.userId, scanId, periodStart, periodEnd],
-    )
-
-    await client.query('COMMIT')
-    return scanId
-  } catch (error) {
-    await client.query('ROLLBACK')
-    throw error
-  } finally {
-    client.release()
-  }
-}
-
-export const getScanHistory = async (userId: string) => {
   const result = await db.query<{
     id: string
     resume_file_name: string
@@ -90,8 +17,10 @@ export const getScanHistory = async (userId: string) => {
     `SELECT id, resume_file_name, overall_score, keyword_match_score, created_at
      FROM resume_scans
      WHERE user_id = $1
-     ORDER BY created_at DESC`,
-    [userId],
+       ${cursorClause}
+     ORDER BY created_at DESC, id DESC
+     LIMIT $2`,
+    params,
   )
 
   return result.rows
@@ -126,4 +55,34 @@ export const deleteScanById = async (userId: string, scanId: string) => {
   )
 
   return (result.rowCount ?? 0) > 0
+}
+
+export const purgeScansCreatedBefore = async (
+  cutoff: Date,
+  options: { maxRetries?: number; sleepMs?: (attempt: number) => number; sleep?: (ms: number) => Promise<void> } = {},
+) => {
+  const maxRetries = options.maxRetries ?? 3
+  const sleepMs = options.sleepMs ?? ((attempt: number) => attempt * 250)
+  const sleep = options.sleep ?? ((ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms)))
+  let lastError: unknown
+  for (let attempt = 1; attempt <= maxRetries; attempt += 1) {
+    try {
+      const result = await db.query(
+        `DELETE FROM resume_scans
+         WHERE created_at < $1`,
+        [cutoff.toISOString()],
+      )
+      return {
+        deletedRows: result.rowCount ?? 0,
+        attempts: attempt,
+        cutoff: cutoff.toISOString(),
+      }
+    } catch (error) {
+      lastError = error
+      if (attempt < maxRetries) {
+        await sleep(sleepMs(attempt))
+      }
+    }
+  }
+  throw lastError
 }

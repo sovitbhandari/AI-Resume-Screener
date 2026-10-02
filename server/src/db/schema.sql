@@ -1,3 +1,10 @@
+-- Bootstrap snapshot of the application schema.
+-- Equivalent statement body to server/src/db/migrations/0001_initial.sql.
+-- This file is not an upgrade history. Forward-only changes belong in
+-- server/src/db/migrations and are applied with: npm run db:migrate
+-- Later migrations, including 0002_scan_operations, are not folded into this snapshot.
+-- Do not apply this snapshot and then run 0001_initial on the same database.
+
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 CREATE TABLE plans (

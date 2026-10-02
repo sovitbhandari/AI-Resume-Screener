@@ -52,7 +52,7 @@ export interface SectionScore {
   feedback: string
 }
 
-export interface ResumeScanResult {
+export interface LegacyResumeScanResult {
   overallScore: number
   keywordMatchScore: number
   atsFormattingFeedback: string[]
@@ -64,6 +64,73 @@ export interface ResumeScanResult {
   sectionAnalysis: SectionScore[]
   rewrittenBullets?: string[]
 }
+
+export interface Citation {
+  sourceId: string
+  quote: string
+}
+
+export interface SourceSegment {
+  id: string
+  kind: 'resume_section' | 'resume_span' | 'jd_requirement'
+  label: string
+  normalizedText: string
+  originalText: string
+}
+
+export interface JdRequirementSource extends SourceSegment {
+  kind: 'jd_requirement'
+  priority: 'required' | 'preferred' | 'unclear'
+}
+
+export interface RequirementEvidence {
+  requirementId: string
+  text: string
+  priority: 'required' | 'preferred' | 'unclear'
+  jdCitation: Citation
+  evidenceStatus: 'supported' | 'partial' | 'not_evidenced'
+  resumeCitations: Citation[]
+  rationale: string
+  suggestedAction: string
+}
+
+export interface EvidenceResumeScanResult {
+  schemaVersion: 'resume-analysis-2'
+  promptVersion: string
+  sourceMap: {
+    resumeSegments: SourceSegment[]
+    jdRequirements: JdRequirementSource[]
+  }
+  extractionWarnings: Array<{ code: string; message: string }>
+  readabilityFacts: {
+    inspectedTextOnly: true
+    visualLayoutInspected: false
+    resumeCharacterCount: number
+    jobDescriptionCharacterCount: number
+    resumeSegmentCount: number
+    jdRequirementCount: number
+  }
+  requirements: RequirementEvidence[]
+  unsupportedCitations: Array<{ requirementId?: string; sourceId?: string; quote?: string; reason: string }>
+  summary: {
+    explicitlyIdentifiedRequirements: number
+    evidencedRequirements: number
+    partiallyEvidencedRequirements: number
+    notEvidencedRequirements: number
+    evidencedPercent: number
+    weightedEvidencePercent: number
+    rubric: string
+  }
+  modelFeedback: {
+    label: 'Model-generated feedback, not validated ATS accuracy'
+    strengths: string[]
+    concerns: string[]
+    suggestedImprovements: string[]
+    rewrittenBullets: string[]
+  }
+}
+
+export type ResumeScanResult = EvidenceResumeScanResult | LegacyResumeScanResult
 
 export interface ScanHistoryItem {
   id: string

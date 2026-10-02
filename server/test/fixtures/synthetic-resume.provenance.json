@@ -1,0 +1,10 @@
+{
+  "artifact": "synthetic-resume.pdf",
+  "origin": "Hand-authored PDF 1.4 generated in this repository. It is not a real resume and contains no personal data.",
+  "generator": "server/test/fixtures/write-synthetic-resume-pdf.mjs",
+  "expectedExtraction": {
+    "pageCount": 1,
+    "cleanedText": "Synthetic resume fixture\n\n-- 1 of 1 --",
+    "note": "pdf-parse 2.4.5 appends a page marker. cleanExtractedResumeText keeps that marker."
+  }
+}

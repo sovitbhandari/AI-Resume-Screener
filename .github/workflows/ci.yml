@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - 'codex/**'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: lockfile install, lint, build, tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:16.4-alpine
+        env:
+          POSTGRES_USER: resume_dev
+          POSTGRES_PASSWORD: resume_dev
+          POSTGRES_DB: ai_resume_screener_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U resume_dev -d ai_resume_screener_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    env:
+      NODE_ENV: test
+      JWT_SECRET: test-only-secret
+      LLM_API_KEY: ''
+      DATABASE_URL: postgresql://resume_dev:resume_dev@localhost:5432/ai_resume_screener_test
+      CLIENT_ORIGIN: http://localhost:5173
+      FREE_TIER_MONTHLY_SCAN_LIMIT: '5'
+      PG_POOL_MAX: '60'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+
+      - name: Setup Node
+        uses: actions/setup-node@v4.1.0
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install from lockfile
+        run: npm ci
+
+      - name: Lint client
+        run: npm run lint --workspace client
+
+      - name: Typecheck server
+        run: npm run typecheck --workspace @ai-resume-screener/server
+
+      - name: Build server
+        run: npm run build --workspace @ai-resume-screener/server
+
+      - name: Build client
+        run: npm run build --workspace client
+
+      - name: Unit/API tests
+        run: npm run test --workspace @ai-resume-screener/server
+
+      - name: Client tests
+        run: npm run test --workspace client
+
+      - name: PostgreSQL quota and migration tests
+        run: npm run test:pg --workspace @ai-resume-screener/server

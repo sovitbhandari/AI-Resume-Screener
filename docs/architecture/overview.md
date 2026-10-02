@@ -4,16 +4,16 @@
 
 - `client` contains the React + TypeScript web application.
 - `server` contains the Node.js + Express TypeScript API.
-- `shared/types` stores cross-layer TypeScript contracts.
+- `shared/types` stores cross-layer TypeScript contracts. `shared/schemas` stores runtime request schemas.
 - PostgreSQL is the system of record for user and scan data.
-- Redis is reserved for caching and rate-limiting in later sprints.
+- Redis is unused. Quota and idempotency are rows in PostgreSQL.
 
 ## Runtime Flow
 
 1. The browser app sends requests to the API under `/api`.
 2. The API validates and orchestrates scan requests.
 3. The API stores scan metadata and results in PostgreSQL.
-4. Current flow supports auth-protected PDF parsing, LLM analysis, scan persistence, history retrieval, and free-tier quota enforcement.
+4. Current flow supports auth-protected PDF parsing, LLM analysis, scan persistence, and history retrieval. Analyze reserves one monthly unit before the provider call and finalizes it when the analysis is saved. The allowance is `FREE_TIER_MONTHLY_SCAN_LIMIT` for every user. Upload authentication runs before the PDF is buffered. Abuse limits are process-local.
 
 ## Backend Organization
 

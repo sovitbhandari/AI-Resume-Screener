@@ -1,0 +1,20 @@
+Commands run after the first npm ci, before test dependencies were added. Each exited 0.
+
+npm run build:server
+tsc -p tsconfig.json
+(no compiler diagnostics)
+
+npm run build:client
+vite v8.0.10
+dist/index.html 0.46 kB
+dist/assets/index-Ieh0-MDU.css 6.20 kB
+dist/assets/index-DyrQqesE.js 249.80 kB
+built in 326ms
+
+npm run typecheck --workspace @ai-resume-screener/server
+tsc --noEmit -p tsconfig.json
+(no compiler diagnostics)
+
+npm run lint --workspace client
+eslint .
+(no lint diagnostics)

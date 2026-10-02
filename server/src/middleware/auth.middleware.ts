@@ -1,17 +1,13 @@
 import type { NextFunction, Request, Response } from 'express'
+import { AppError } from '../errors/app-error.js'
 import { verifyAuthToken } from '../services/auth.service.js'
 
-export const requireAuth = (req: Request, res: Response, next: NextFunction) => {
+export function requireAuth(req: Request, _res: Response, next: NextFunction) {
   const authHeader = req.header('authorization') ?? ''
-  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : ''
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice('Bearer '.length).trim() : ''
 
   if (!token) {
-    res.status(401).json({
-      error: {
-        code: 'UNAUTHORIZED',
-        message: 'Missing bearer token.',
-      },
-    })
+    next(new AppError('UNAUTHORIZED', 401, 'Missing bearer token.'))
     return
   }
 
@@ -23,11 +19,6 @@ export const requireAuth = (req: Request, res: Response, next: NextFunction) => 
     }
     next()
   } catch {
-    res.status(401).json({
-      error: {
-        code: 'UNAUTHORIZED',
-        message: 'Invalid or expired auth token.',
-      },
-    })
+    next(new AppError('UNAUTHORIZED', 401, 'Invalid or expired auth token.'))
   }
 }

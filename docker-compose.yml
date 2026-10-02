@@ -1,0 +1,10 @@
+# Local PostgreSQL setup material. This file does not start a database by itself.
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: resume_dev
+      POSTGRES_PASSWORD: resume_dev
+      POSTGRES_DB: ai_resume_screener
+    ports:
+      - "5432:5432"

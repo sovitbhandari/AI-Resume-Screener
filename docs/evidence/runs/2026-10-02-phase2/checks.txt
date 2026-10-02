@@ -1,0 +1,30 @@
+date: 2026-10-02
+head: 1b0a6b3d0a7a1642affa62d459095c4d76accd7f
+worktree: uncommitted
+node: v22.16.0
+npm: 10.9.2
+repetitions: 1 for the final sequence below
+workload: synthetic fixtures, in-memory user directory, no live provider, no database migration
+
+command: npm test && npm run typecheck --workspace @ai-resume-screener/server && npm run lint --workspace client
+exit: 0
+
+server vitest 5.0.3: Test Files 8 passed (8); Tests 42 passed (42); duration 923ms
+client vitest 5.0.3: Test Files 3 passed (3); Tests 4 passed (4); duration 631ms
+typecheck: tsc --noEmit -p tsconfig.json with no diagnostics
+lint: eslint . with no diagnostics
+
+Earlier in the same phase, npm run build:server and npm run build:client also exited 0.
+build:server copies the pdf worker .mjs files next to the compiled services.
+build:client vite 8.0.10, 38 modules, built in 86ms.
+
+The 5 MiB rejection test allocates fieldLimits.pdfMaxBytes + 1 bytes and expects HTTP 413 FILE_TOO_LARGE.
+That checks the configured multer limit. It does not establish a safe PDF workload.
+
+A spin worker is terminated with PDF_PARSE_TIMEOUT. Promise.race is not the timeout mechanism.
+Encrypted classification is the worker regex /password|encrypt/i, covered by classifyParserError.
+A buffer that starts with %PDF-1.7 and is not a usable PDF returns HTTP 422 with MALFORMED_PDF or NO_TEXT_PDF.
+The final suite does not print which of those two codes that buffer produced.
+
+npm ci was not repeated. No dependency versions were added or downgraded.
+npm run db:migrate was not run. docker compose up was not run.

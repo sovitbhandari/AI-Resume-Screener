@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { deleteHistoryScan, fetchHistory, fetchHistoryScan, type ScanHistoryItem } from '../services/scanService'
-import { getAuthToken } from '../services/authStorage'
+import { ApiClientError, deleteHistoryScan, fetchHistory, type ScanHistoryItem } from '../services/scanService'
+import { clearCachedScanId, getAuthToken, setLatestScanId } from '../services/authStorage'
 
 export function HistoryPage() {
   const navigate = useNavigate()
   const [history, setHistory] = useState<ScanHistoryItem[]>([])
+  const [nextCursor, setNextCursor] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -21,6 +23,7 @@ export function HistoryPage() {
       try {
         const response = await fetchHistory()
         setHistory(response.data)
+        setNextCursor(response.meta.nextCursor)
       } catch (loadError) {
         const message = loadError instanceof Error ? loadError.message : 'Unable to load history.'
         setError(message)
@@ -32,26 +35,29 @@ export function HistoryPage() {
     void run()
   }, [navigate])
 
-  const openScan = async (scanId: string) => {
-    try {
-      const response = await fetchHistoryScan(scanId)
-      const payload = {
-        parsedResume: {
-          fileName: response.data.resume_file_name,
-          rawText: response.data.resume_text,
-          cleanedText: response.data.resume_text,
-          pageCount: 0,
-          characterCount: response.data.resume_text.length,
-        },
-        analysis: response.data.result_json,
-        jobDescriptionText: response.data.job_description,
-      }
-      sessionStorage.setItem('latestResumeAnalysis', JSON.stringify(payload))
-      navigate('/result', { state: payload })
-    } catch (openError) {
-      const message = openError instanceof Error ? openError.message : 'Unable to open scan.'
-      setError(message)
+  const loadMore = async () => {
+    if (!nextCursor) {
+      return
     }
+    setIsLoadingMore(true)
+    setError(null)
+    try {
+      const response = await fetchHistory({ cursor: nextCursor })
+      setHistory((prev) => [...prev, ...response.data])
+      setNextCursor(response.meta.nextCursor)
+    } catch (loadError) {
+      const message = loadError instanceof ApiClientError && loadError.code === 'INVALID_CURSOR'
+        ? 'History cursor expired or was invalid. Refresh history and try again.'
+        : loadError instanceof Error ? loadError.message : 'Unable to load more history.'
+      setError(message)
+    } finally {
+      setIsLoadingMore(false)
+    }
+  }
+
+  const openScan = (scanId: string) => {
+    setLatestScanId(scanId)
+    navigate(`/result/${scanId}`)
   }
 
   const onDeleteScan = async (scanId: string) => {
@@ -62,6 +68,7 @@ export function HistoryPage() {
 
     try {
       await deleteHistoryScan(scanId)
+      clearCachedScanId(scanId)
       setHistory((prev) => prev.filter((scan) => scan.id !== scanId))
     } catch (deleteError) {
       const message = deleteError instanceof Error ? deleteError.message : 'Unable to delete scan.'
@@ -93,8 +100,8 @@ export function HistoryPage() {
             <thead>
               <tr>
                 <th>Resume</th>
-                <th>Overall</th>
-                <th>Keyword</th>
+                <th>Weighted evidence</th>
+                <th>Direct evidence</th>
                 <th>Date</th>
                 <th>Action</th>
               </tr>
@@ -102,10 +109,10 @@ export function HistoryPage() {
             <tbody>
               {history.map((scan) => (
                 <tr key={scan.id}>
-                  <td>{scan.resume_file_name}</td>
-                  <td>{scan.overall_score ?? '-'}</td>
-                  <td>{scan.keyword_match_score ?? '-'}</td>
-                  <td>{new Date(scan.created_at).toLocaleString()}</td>
+                  <td>{scan.resumeFileName}</td>
+                  <td>{scan.weightedEvidencePercent ?? '-'}</td>
+                  <td>{scan.directEvidencePercent ?? '-'}</td>
+                  <td>{new Date(scan.createdAt).toLocaleString()}</td>
                   <td>
                     <div className="history-actions">
                       <button type="button" className="ghost-button" onClick={() => openScan(scan.id)}>
@@ -120,6 +127,11 @@ export function HistoryPage() {
               ))}
             </tbody>
           </table>
+          {nextCursor ? (
+            <button type="button" className="ghost-button" onClick={loadMore} disabled={isLoadingMore}>
+              {isLoadingMore ? 'Loading...' : 'Load more'}
+            </button>
+          ) : null}
         </div>
       )}
     </section>

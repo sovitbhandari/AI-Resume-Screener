@@ -3,4 +3,5 @@ import { env } from '../config/env.js'
 
 export const db = new Pool({
   connectionString: env.databaseUrl || undefined,
+  max: env.pgPoolMax,
 })

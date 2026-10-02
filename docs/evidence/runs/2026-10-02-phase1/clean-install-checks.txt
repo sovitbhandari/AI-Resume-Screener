@@ -1,0 +1,33 @@
+command: npm ci && npm run build:server && npm run build:client && npm run typecheck --workspace @ai-resume-screener/server && npm run lint --workspace client && npm test
+when: after the lockfile included Vitest, Supertest, Testing Library, and jsdom
+exit: 0
+repetitions: 1
+
+npm ci
+added 384 packages, and audited 387 packages in 3s
+13 vulnerabilities (3 low, 2 moderate, 8 high)
+npm audit fix was not run.
+
+build:server
+tsc -p tsconfig.json
+(no compiler diagnostics)
+
+build:client
+vite v8.0.10
+38 modules transformed
+dist/index.html 0.46 kB
+dist/assets/index-Ieh0-MDU.css 6.20 kB
+dist/assets/index-DyrQqesE.js 249.80 kB
+built in 230ms
+
+typecheck
+tsc --noEmit -p tsconfig.json
+(no compiler diagnostics)
+
+lint
+eslint .
+(no lint diagnostics)
+
+npm test
+server vitest 5.0.3: Test Files 7 passed (7); Tests 23 passed (23); duration 717ms
+client vitest 5.0.3: Test Files 2 passed (2); Tests 3 passed (3); duration 779ms

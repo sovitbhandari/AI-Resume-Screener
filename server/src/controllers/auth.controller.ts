@@ -1,50 +1,17 @@
 import type { Request, Response } from 'express'
-import { loginUser, registerUser, signAuthToken } from '../services/auth.service.js'
-import { env } from '../config/env.js'
+import { loginBodySchema, parseWithSchema, registerBodySchema } from '../../../shared/schemas/api.js'
+import { AppError } from '../errors/app-error.js'
+import { loginUser, registerUser, signAuthToken, type UserDirectory } from '../services/auth.service.js'
 
-const validateEmail = (email: string) => /\S+@\S+\.\S+/.test(email)
+export const createAuthControllers = (directory: UserDirectory) => {
+  const registerController = async (req: Request, res: Response) => {
+    const parsed = parseWithSchema(registerBodySchema, req.body)
+    if (!parsed.ok) {
+      throw new AppError(parsed.code, 400, parsed.message)
+    }
 
-export const registerController = async (req: Request, res: Response) => {
-  const { email, password, fullName } = req.body as {
-    email?: string
-    password?: string
-    fullName?: string
-  }
-
-  if (!email?.trim() || !password?.trim()) {
-    res.status(400).json({
-      error: {
-        code: 'INVALID_INPUT',
-        message: 'email and password are required.',
-      },
-    })
-    return
-  }
-
-  if (!validateEmail(email)) {
-    res.status(400).json({
-      error: {
-        code: 'INVALID_EMAIL',
-        message: 'Please provide a valid email address.',
-      },
-    })
-    return
-  }
-
-  if (password.length < 8) {
-    res.status(400).json({
-      error: {
-        code: 'WEAK_PASSWORD',
-        message: 'Password must be at least 8 characters long.',
-      },
-    })
-    return
-  }
-
-  try {
-    const user = await registerUser({ email, password, fullName })
+    const user = await registerUser(parsed.value, directory)
     const token = signAuthToken({ userId: user.id, email: user.email })
-
     res.status(201).json({
       data: {
         token,
@@ -55,48 +22,16 @@ export const registerController = async (req: Request, res: Response) => {
         },
       },
     })
-  } catch (error) {
-    if (error instanceof Error && error.message === 'EMAIL_ALREADY_EXISTS') {
-      res.status(409).json({
-        error: {
-          code: 'EMAIL_ALREADY_EXISTS',
-          message: 'An account with this email already exists.',
-        },
-      })
-      return
+  }
+
+  const loginController = async (req: Request, res: Response) => {
+    const parsed = parseWithSchema(loginBodySchema, req.body)
+    if (!parsed.ok) {
+      throw new AppError(parsed.code, 400, parsed.message)
     }
 
-    console.error('registerController error:', error)
-
-    res.status(500).json({
-      error: {
-        code: 'REGISTER_FAILED',
-        message:
-          env.nodeEnv === 'development' && error instanceof Error
-            ? `Unable to create account: ${error.message}`
-            : 'Unable to create account at this time.',
-      },
-    })
-  }
-}
-
-export const loginController = async (req: Request, res: Response) => {
-  const { email, password } = req.body as { email?: string; password?: string }
-
-  if (!email?.trim() || !password?.trim()) {
-    res.status(400).json({
-      error: {
-        code: 'INVALID_INPUT',
-        message: 'email and password are required.',
-      },
-    })
-    return
-  }
-
-  try {
-    const user = await loginUser({ email, password })
+    const user = await loginUser(parsed.value, directory)
     const token = signAuthToken({ userId: user.id, email: user.email })
-
     res.status(200).json({
       data: {
         token,
@@ -107,27 +42,7 @@ export const loginController = async (req: Request, res: Response) => {
         },
       },
     })
-  } catch (error) {
-    if (error instanceof Error && error.message === 'INVALID_CREDENTIALS') {
-      res.status(401).json({
-        error: {
-          code: 'INVALID_CREDENTIALS',
-          message: 'Invalid email or password.',
-        },
-      })
-      return
-    }
-
-    console.error('loginController error:', error)
-
-    res.status(500).json({
-      error: {
-        code: 'LOGIN_FAILED',
-        message:
-          env.nodeEnv === 'development' && error instanceof Error
-            ? `Unable to login: ${error.message}`
-            : 'Unable to login at this time.',
-      },
-    })
   }
+
+  return { registerController, loginController }
 }

@@ -1,0 +1,10 @@
+date: 2026-10-02
+command: node -v && npm -v
+node: v22.16.0
+npm: 10.9.2
+os: darwin arm64 (user_info kernel darwin 25.6.0; sw_vers productVersion 26.6.2)
+engines.node pin: >=22.13.0 <23 || >=24 <25 || >=26
+head: 1b0a6b3d0a7a1642affa62d459095c4d76accd7f
+worktree: uncommitted Phase 1 changes
+repetitions: 1
+workload: synthetic fixtures only; no live provider

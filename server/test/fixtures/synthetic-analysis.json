@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "resume-analysis-2",
+  "promptVersion": "resume-analysis-evidence-2026-10-02",
+  "sourceMap": {
+    "resumeSegments": [
+      {
+        "id": "res-01-19296dfb",
+        "kind": "resume_section",
+        "label": "Resume opening text",
+        "normalizedText": "synthetic resume text.",
+        "originalText": "Synthetic resume text."
+      }
+    ],
+    "jdRequirements": [
+      {
+        "id": "jdreq-01-33fb1099",
+        "kind": "jd_requirement",
+        "label": "Job requirement 1",
+        "priority": "unclear",
+        "normalizedText": "synthetic job description.",
+        "originalText": "Synthetic job description."
+      }
+    ]
+  },
+  "extractionWarnings": [
+    {
+      "code": "TEXT_ONLY_ANALYSIS",
+      "message": "Only extracted text was inspected. PDF coordinates, columns, fonts, spacing, and visual layout were not evaluated."
+    }
+  ],
+  "readabilityFacts": {
+    "inspectedTextOnly": true,
+    "visualLayoutInspected": false,
+    "resumeCharacterCount": 22,
+    "jobDescriptionCharacterCount": 26,
+    "resumeSegmentCount": 1,
+    "jdRequirementCount": 1
+  },
+  "requirements": [
+    {
+      "requirementId": "jdreq-01-33fb1099",
+      "text": "Synthetic job description.",
+      "priority": "unclear",
+      "jdCitation": {
+        "sourceId": "jdreq-01-33fb1099",
+        "quote": "Synthetic job description."
+      },
+      "evidenceStatus": "supported",
+      "resumeCitations": [
+        {
+          "sourceId": "res-01-19296dfb",
+          "quote": "Synthetic resume text."
+        }
+      ],
+      "rationale": "The synthetic resume text is linked as the supporting evidence for this synthetic requirement.",
+      "suggestedAction": "Keep this evidence if it accurately reflects the candidate's experience."
+    }
+  ],
+  "unsupportedCitations": [],
+  "summary": {
+    "explicitlyIdentifiedRequirements": 1,
+    "evidencedRequirements": 1,
+    "partiallyEvidencedRequirements": 0,
+    "notEvidencedRequirements": 0,
+    "evidencedPercent": 100,
+    "weightedEvidencePercent": 100,
+    "rubric": "Internal evidence coverage only. Required requirements have weight 2; preferred and unclear requirements have weight 1. Supported earns full weight, partial earns half, and not evidenced earns zero."
+  },
+  "modelFeedback": {
+    "label": "Model-generated feedback, not validated ATS accuracy",
+    "strengths": ["Synthetic evidence link resolves."],
+    "concerns": [],
+    "suggestedImprovements": ["Review extracted text before relying on this synthetic analysis."],
+    "rewrittenBullets": []
+  }
+}
